@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <title>Linear-Transformation</title>
+ </head>
+ <body style="margin:0;position:fixed;background-color:black;">
+  <canvas></canvas>
+  <script type="text/javascript" charset="utf-8">
+FPS=60;
+scalar=5;
+NoOfLines=40;
+XaxisColor="#ff0000";
+XaxisThickness=3;
+XaxisTipColor="#ff0000";
+XaxisTipRadious=10;
+YaxisColor="#0000ff";
+YaxisThickness=3;
+YaxisTipColor="#0000ff";
+YaxisTipRadious=10;
+BackgroundColor="#000000";
+BackgroundDimGridColor="#404040";
+BackgroundBrightGridColor="#808080";
+BackgroundGridThickness=1;
+ForegroundGridColor="#e0e0e0";
+ForegroundGridThickness=1;
+transformationmatrix={
+  xhat:{x:1,y:0},
+  yhat:{x:0,y:1}
+};
+canvas=document.querySelector("canvas");
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+ctx=canvas.getContext("2d");
+
+
+//FUNCTIONS
+drawdisc=(x,y,r,c)=>{ctx.beginPath();ctx.fillStyle=c;v=gridtranslater(x,y);ctx.arc(v.x,v.y,r,0,2*Math.PI);ctx.fill();};
+drawline=(x1,y1,x2,y2,t,c)=>{ctx.beginPath();ctx.strokeStyle=c;ctx.lineWidth=t;u=gridtranslater(x1,y1);v=gridtranslater(x2,y2);ctx.moveTo(u.x,u.y);ctx.lineTo(v.x,v.y);ctx.stroke();};
+drawlines=$=>{for(i=-NoOfLines;i<NoOfLines+1;i++){if(i%2==1 || i%2==-1){drawline(i,-NoOfLines,i,NoOfLines,1,BackgroundDimGridColor);drawline(-NoOfLines,i,NoOfLines,i,BackgroundGridThickness,BackgroundDimGridColor);}else{drawline(i,-NoOfLines,i,NoOfLines,1,BackgroundBrightGridColor);drawline(-NoOfLines,i,NoOfLines,i,BackgroundGridThickness,BackgroundBrightGridColor);}}for(i=-NoOfLines;i<NoOfLines+1;i++){u=matrixvectormul(i,-NoOfLines,transformationmatrix);v=matrixvectormul(i,NoOfLines,transformationmatrix);w=matrixvectormul(-NoOfLines,i,transformationmatrix);x=matrixvectormul(NoOfLines,i,transformationmatrix);drawline(u.x,u.y,v.x,v.y,ForegroundGridThickness,ForegroundGridColor);drawline(w.x,w.y,x.x,x.y,ForegroundGridThickness,ForegroundGridColor)}u=matrixvectormul(0,-NoOfLines,transformationmatrix);v=matrixvectormul(0,NoOfLines,transformationmatrix);w=matrixvectormul(-NoOfLines,0,transformationmatrix);x=matrixvectormul(NoOfLines,0,transformationmatrix);drawline(u.x,u.y,v.x,v.y,YaxisThickness,YaxisColor);drawline(w.x,w.y,x.x,x.y,XaxisThickness,XaxisColor);drawdisc(transformationmatrix.xhat.x,transformationmatrix.xhat.y,XaxisTipRadious,XaxisTipColor);drawdisc(transformationmatrix.yhat.x,transformationmatrix.yhat.y,YaxisTipRadious,YaxisTipColor);};
+matrixvectormul=(x,y,matrix)=>{return{x:matrix.xhat.x*x+matrix.yhat.x*y,y:matrix.xhat.y*x+matrix.yhat.y*y};};
+gridtranslater=(x,y)=>{return {x:window.innerWidth*(x/scalar+1)/2,y:(window.innerHeight-window.innerWidth*y/scalar)/2};};
+antigridtranslater=(x,y)=>{return {x:scalar*(2*x/window.innerWidth-1),y:scalar*(window.innerHeight-2*y)/window.innerWidth};};
+
+//glider1
+glider1={x:1,y:0};
+glider2={x:0,y:1};
+target="xhat";
+
+prepareglider=$=>{
+  if($.xhat){
+    glider1=antigridtranslater(glider1.x,glider1.y);
+    transformationmatrix.xhat=glider1;
+    changes=true;
+  }
+  if($.yhat){
+    glider2=antigridtranslater(glider2.x,glider2.y);
+    transformationmatrix.yhat=glider2;
+    changes=true;
+  }
+};
+
+addEventListener("touchstart",$=>{
+  if($.touches.length==1){
+    p=antigridtranslater($.touches[0].clientX,$.touches[0].clientY);
+    y=Math.sqrt(Math.pow(p.x-transformationmatrix.xhat.x,2)+Math.pow(p.y-transformationmatrix.xhat.y,2));
+    z=Math.sqrt(Math.pow(p.x-transformationmatrix.yhat.x,2)+Math.pow(p.y-transformationmatrix.yhat.y,2));
+    if(y<z){
+      target="xhat";
+      glider1.x=$.touches[0].clientX;
+      glider1.y=$.touches[0].clientY;
+      prepareglider({xhat:true,yhat:false});
+    }else{
+      target="yhat";
+      glider2.x=$.touches[0].clientX;
+      glider2.y=$.touches[0].clientY;
+      prepareglider({xhat:false,yhat:true});
+    }
+    
+  }
+  if($.touches.length==2){
+    glider1.x=$.touches[0].clientX;
+    glider2.x=$.touches[1].clientX;
+    glider1.y=$.touches[0].clientY;
+    glider2.y=$.touches[1].clientY;
+    prepareglider({xhat:true,yhat:true});
+  }
+});
+
+addEventListener("touchmove",$=>{
+  if($.touches.length==1){
+    if(target=="xhat"){
+      glider1.x=$.touches[0].clientX;
+      glider1.y=$.touches[0].clientY;
+      prepareglider({xhat:true,yhat:false});
+    }
+    if(target=="yhat"){
+      glider2.x=$.touches[0].clientX;
+      glider2.y=$.touches[0].clientY;
+      prepareglider({xhat:false,yhat:true});
+    }
+  }
+  if($.touches.length==2){
+    glider1.x=$.touches[0].clientX;
+    glider2.x=$.touches[1].clientX;
+    glider1.y=$.touches[0].clientY;
+    glider2.y=$.touches[1].clientY;
+    prepareglider({xhat:true,yhat:true});
+  }
+});
+
+
+//VARIABLES
+changes=true;
+
+//REPEAT
+Repeat=$=>{
+  if(!changes){
+    return;
+  }
+  ctx.fillStyle=BackgroundColor;
+  ctx.fillRect(0,0,window.innerWidth,window.innerHeight);
+  drawlines();
+  changes=false;
+};
+
+window.setInterval($=>{FrameNo++;$=window.performance.now();Repeat($);WorkingTime=window.performance.now()-$;if($>5000 && MaxWorkingTime<WorkingTime){MaxWorkingTime=WorkingTime;}},1000/FPS,FrameNo=0,WorkingTime=0,MaxWorkingTime=0);
+  </script>
+ </body>
+</html>
