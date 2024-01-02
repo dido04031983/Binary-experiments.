@@ -23,7 +23,7 @@ const zoomDispatcher=function(reference){
         y:(window.visualViewport.height-2*value.clientY)*viewportMin
       };
     }
-  });
+  },false);
   reference.addEventListener("touchmove",function(Event){
     const viewportMin=1/Math.min(window.visualViewport.width,visualViewport.height);
     if(Event.touches.length==2 && this.pointerTracker.maxPointersStepped==2){
@@ -80,10 +80,10 @@ const zoomDispatcher=function(reference){
         };
       }
     }
-  });
+  },false);
   reference.addEventListener("touchend",function(Event){
     if(Event.touches.length==0){
       this.pointerTracker.maxPointersStepped=0;
     }
-  });
+  },true);
 };
