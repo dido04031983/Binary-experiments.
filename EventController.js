@@ -27,7 +27,7 @@ const EventDispatcher=function(reference){
       };
       if(ptrTracker.maxPointersStepped==1){
         ptrTracker.eventStartPos={...ptrTracker["ptr"+id].Coords,time:Event.timeStamp};
-        ptrTracker.noBackSwipe=true;
+        ptrTracker.noBackSwipe=null;
       }
     }
   },false);
@@ -86,6 +86,9 @@ const EventDispatcher=function(reference){
           y:(window.visualViewport.height-2*value.clientY)*viewportMin
         };
         if(ptrTracker.maxPointersStepped==1 && Math.hypot(coords.x-ptrTracker.eventStartPos.x,coords.y-ptrTracker.eventStartPos.y)>Math.hypot(ptrTracker["ptr"+id].Coords.x-ptrTracker.eventStartPos.x,ptrTracker["ptr"+id].Coords.y-ptrTracker.eventStartPos.y)){
+          if(ptrTracker.noBackSwipe==null){
+            ptrTracker.noBackSwipe=true;
+          }
           ptrTracker.noBackSwipe&=true;
         }else{
           ptrTracker.noBackSwipe=false;
@@ -98,6 +101,7 @@ const EventDispatcher=function(reference){
   reference.addEventListener("touchend",function(Event){
     const ptrTracker=this.ptrTracker;
     if(Event.touches.length==0){
+      ptrTracker.maxPointersStepped=0;
       if(ptrTracker.noBackSwipe && Event.timeStamp-ptrTracker.eventStartPos.time<200){
         const distance=Math.hypot(ptrTracker.ptr0.Coords.x-ptrTracker.eventStartPos.x,ptrTracker.ptr0.Coords.y-ptrTracker.eventStartPos.y);
         const angle=Math.atan2(ptrTracker.ptr0.Coords.y-ptrTracker.eventStartPos.y,ptrTracker.ptr0.Coords.x-ptrTracker.eventStartPos.x);
@@ -111,7 +115,6 @@ const EventDispatcher=function(reference){
           composed:true
         }));
       }
-      ptrTracker.maxPointersStepped=0;
     }
   },true);
   return reference;
