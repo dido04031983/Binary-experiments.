@@ -120,6 +120,7 @@
   return reference;
 };*/
 
+"use strict";
 const EventInterface=function(element,options){
   class Pointer{
     constructor(){
@@ -333,26 +334,28 @@ const EventInterface=function(element,options){
       };
     },
     parsePaperControls:function(pointers,changedPointerId){
-      const capture1=pointers.pointer1;
-      const capture2=pointers.pointer2;
-      const deltaTime=Math.max(capture2.latest.timeStamp,capture1.latest.timeStamp)
-        -(changedPointerId==1?capture2.latest.timeStamp:changedPointerId==2?capture1.latest.timeStamp:
-        Math.max(capture2.secondLatest.timeStamp,capture1.secondLatest.timeStamp));
+      const secondLatest1=pointers.pointer1.secondLatest;
+      const secondLatest2=pointers.pointer2.secondLatest;
+      const latest1=pointers.pointer1.latest;
+      const latest2=pointers.pointer2.latest;
+      const deltaTime=Math.max(latest2.timeStamp,latest1.timeStamp)
+        -(changedPointerId==1?latest2.timeStamp:changedPointerId==2?latest1.timeStamp:
+        Math.max(secondLatest2.timeStamp,secondLatest1.timeStamp));
       const initialStartPoint={
-        x:changedPointerId==2?capture1.latest.clientX:capture1.secondLatest.clientX,
-        y:changedPointerId==2?capture1.latest.clientY:capture1.secondLatest.clientY
+        x:changedPointerId==2?latest1.clientX:secondLatest1.clientX,
+        y:changedPointerId==2?latest1.clientY:secondLatest1.clientY
       };
       const initialEndPoint={
-        x:changedPointerId==1?capture2.latest.clientX:capture2.secondLatest.clientX,
-        y:changedPointerId==1?capture2.latest.clientY:capture2.secondLatest.clientY
+        x:changedPointerId==1?latest2.clientX:secondLatest2.clientX,
+        y:changedPointerId==1?latest2.clientY:secondLatest2.clientY
       };
       const initialVector={
         x:initialEndPoint.x-initialStartPoint.x,
         y:initialEndPoint.y-initialStartPoint.y
       };
       const finalVector={
-        x:capture2.latest.clientX-capture1.latest.clientX,
-        y:capture2.latest.clientY-capture1.latest.clientY
+        x:latest2.clientX-latest1.clientX,
+        y:latest2.clientY-latest1.clientY
       };
       return {
         scaleData:{
@@ -418,20 +421,20 @@ const EventInterface=function(element,options){
             deltaTime,
             initialStartPoint,initialEndPoint,
             finalStartPoint:{
-              x:capture1.latest.clientX,
-              y:capture1.latest.clientY
+              x:latest1.clientX,
+              y:latest1.clientY
             },
             finalEndPoint:{
-              x:capture2.latest.clientX,
-              y:capture2.latest.clientY
+              x:latest2.clientX,
+              y:latest2.clientY
             },
             initialCenter:{
               x:0.5*(initialStartPoint.x+initialEndPoint.x),
               y:0.5*(initialStartPoint.y+initialEndPoint.y)
             },
             finalCenter:{
-              x:0.5*(capture1.latest.clientX+capture2.latest.clientX),
-              y:0.5*(capture1.latest.clientY+capture2.latest.clientY)
+              x:0.5*(latest1.clientX+latest2.clientX),
+              y:0.5*(latest1.clientY+latest2.clientY)
             },
             get shiftVector(){
               if(this._shiftVector==undefined){
