@@ -120,7 +120,6 @@
   return reference;
 };*/
 
-"use strict";
 const EventInterface=function(element,options){
   class Pointer{
     constructor(){
@@ -493,16 +492,35 @@ const EventInterface=function(element,options){
     }else if(e.touches.length==2){
       if(iObject.twoPointers){
         iObject.pointerInfo.pointer2.first=iObject.extract(e.changedTouches[0],e.timeStamp);
-        /*paper resume event*/
+        element.dispatchEvent(new CustomEvent("dblptr-resume",{
+          detail:{
+            ptr1:iObject.pointerInfo.pointer1.latest,
+            ptr2:iObject.pointerInfo.pointer2.first
+          },
+          bubbles:true,
+          cancelable:true
+        }));
       }else{
-        iObject.pointerInfo.pointer1.reset();
-        iObject.pointerInfo.pointer1.first=iObject.extract(e.touches[0],e.timeStamp);
         iObject.pointerInfo.pointer2.first=iObject.extract(e.touches[1],e.timeStamp);
-        /*paper start event*/
+        element.dispatchEvent(new CustomEvent("dblptr-start",{
+          detail:{
+            ptr1:iObject.pointerInfo.pointer1.latest,
+            ptr2:iObject.pointerInfo.pointer2.first
+          },
+          bubbles:true,
+          cancelable:true
+        }));
         iObject.twoPointers=true;
       }
     }else if(e.touches.length==3){
-      /*paper forced end event*/
+      element.dispatchEvent(new CustomEvent("dblptr-forced-end",{
+          detail:{
+            ptr1:iObject.pointerInfo.pointer1.latest,
+            ptr2:iObject.pointerInfo.pointer2.latest
+          },
+          bubbles:true,
+          cancelable:true
+        }));
       iObject.threePointers=true;
     }
   });
@@ -515,13 +533,13 @@ const EventInterface=function(element,options){
       const parsedSlideData=iObject.parseSlide(iObject.pointerInfo.pointer1,!iObject.twoPointers);
       element.dispatchEvent(new CustomEvent("slide",parsedSlideData));
     }else if(e.touches.length==2){
-      if(e.changedTouches==1){
-        iObject.pointerInfo[`pointer${e.changedTouches[0].id+1}`].pointerPush(iObject.extract(e.changedTouches[0],e.timeStamp));
+      if(e.changedTouches.length==1){
+        iObject.pointerInfo[`pointer${e.changedTouches[0].identifier+1}`].pointerPush(iObject.extract(e.changedTouches[0],e.timeStamp));
       }else{
         iObject.pointerInfo.pointer1.pointerPush(iObject.extract(e.touches[iObject.pointerInfo.pointer1.first.id==e.touches[0].identifier?0:1],e.timeStamp));
         iObject.pointerInfo.pointer2.pointerPush(iObject.extract(e.touches[iObject.pointerInfo.pointer2.first.id==e.touches[0].identifier?0:1],e.timeStamp));
       }
-      const parsedPaperData=iObject.parsePaperControls(iObject.pointerInfo,e.changedTouches==1?e.changedTouches[0].id+1:null);
+      const parsedPaperData=iObject.parsePaperControls(iObject.pointerInfo,e.changedTouches.length==1?e.changedTouches[0].identifier+1:null);
       parsedPaperData.shiftData.detail.scale=parsedPaperData.scaleData.detail;
       parsedPaperData.shiftData.detail.rotate=parsedPaperData.rotateData.detail;
       element.dispatchEvent(new CustomEvent("scale",parsedPaperData.scaleData));
@@ -535,7 +553,10 @@ const EventInterface=function(element,options){
         return iObject.reset();
       }
       if(iObject.twoPointers){
-        /*paper end event*/
+        element.dispatchEvent(new Event("dblptr-end",{
+          bubbles:true,
+          cancelable:true
+        }));
       }else{
         const parsedSwipeData=iObject.parseSwipe(iObject.pointerInfo.pointer1);
         if(parsedSwipeData.isSwipe){
@@ -547,7 +568,10 @@ const EventInterface=function(element,options){
       if(iObject.threePointers){
         return;
       }
-      /*paper pause event*/
+      element.dispatchEvent(new Event("dblptr-pause",{
+        bubbles:true,
+        cancelable:true
+      }));
       if(e.changedTouches[0].identifier==iObject.pointerInfo.pointer1.first.id){
         iObject.pointerInfo.pointer1.importData(iObject.pointerInfo.pointer2);
       }
